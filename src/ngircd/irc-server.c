@@ -355,6 +355,63 @@ IRC_NJOIN( CLIENT *Client, REQUEST *Req )
 	return CONNECTED;
 } /* IRC_NJOIN */
 
+GLOBAL bool IRC_SVSJOIN( CLIENT *Client, REQUEST *Req ) {
+	CLIENT *from, *target;
+
+	assert(Client != NULL);
+	assert(Req != NULL);
+
+	/* Search the originator */
+	from = Client_Search(Req->prefix);
+	if (!from)
+		from = Client;
+
+	/* Search the target */
+	target = Client_Search(Req->argv[0]);
+	if (!target || Client_Type(target) != CLIENT_USER)
+		return IRC_WriteErrClient(Client, ERR_NOSUCHNICK_MSG,
+					  Client_ID(Client), Req->argv[0]);
+
+	if (Client_Conn(target) <= NONE) {
+		/* We have to forward the message to the server handling
+		 * this user; this is required to make sure all servers
+		 * in the network do follow the nick name change! */
+		return IRC_WriteStrClientPrefix(Client_NextHop(target), from, "SVSJOIN %s %s", Req->argv[0], Req->argv[1]);
+	}
+
+  Req->argc = 1;
+  Req->argv[0] = Req->argv[1];
+	return IRC_JOIN(target, Req);
+}
+
+GLOBAL bool IRC_SVSPART( CLIENT *Client, REQUEST *Req ) {
+	CLIENT *from, *target;
+
+	assert(Client != NULL);
+	assert(Req != NULL);
+
+	/* Search the originator */
+	from = Client_Search(Req->prefix);
+	if (!from)
+		from = Client;
+
+	/* Search the target */
+	target = Client_Search(Req->argv[0]);
+	if (!target || Client_Type(target) != CLIENT_USER)
+		return IRC_WriteErrClient(Client, ERR_NOSUCHNICK_MSG,
+					  Client_ID(Client), Req->argv[0]);
+
+	if (Client_Conn(target) <= NONE) {
+		/* We have to forward the message to the server handling
+		 * this user; this is required to make sure all servers
+		 * in the network do follow the nick name change! */
+		return IRC_WriteStrClientPrefix(Client_NextHop(target), from, "SVSPART %s %s", Req->argv[0], Req->argv[1]);
+	}
+
+  Req->argc = 1;
+  Req->argv[0] = Req->argv[1];
+	return IRC_PART(target, Req);
+}
 /**
  * Handler for the IRC "SQUIT" command.
  *

@@ -23,6 +23,9 @@ GLOBAL bool IRC_SQUIT PARAMS((CLIENT *Client, REQUEST *Req ));
 
 GLOBAL bool IRC_ENDOFMOTD_Server PARAMS((CLIENT *Client));
 
+GLOBAL bool IRC_SVSJOIN PARAMS((CLIENT *Client, REQUEST *Req ));
+GLOBAL bool IRC_SVSPART PARAMS((CLIENT *Client, REQUEST *Req ));
+
 #endif
 
 /* -eof- */
